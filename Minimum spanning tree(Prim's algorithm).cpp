@@ -1,19 +1,20 @@
 #include<stdio.h>
 #include<iostream>
 #include<stdlib.h>
+
 #define NULL_VALUE -999999
 #define INFINITY 999999
+
 #define WHITE 1
 #define GREY 2
 #define BLACK 3
 
 #define MAX_HEAP_SIZE 100000
-
 #define MAXREAL 999999.0
 
+//#define dbg printf("in\n");
+
 using namespace std;
-
-
 
 /** Main data of Tree*/
 class HeapItem
@@ -187,9 +188,12 @@ public:
                 HeapItem hp=A[parent];
                 A[parent]=A[i];
                 A[i]=hp;
-            }
-            i=parent;
-            parent=parent/2;
+                map[A[parent].data]=parent;
+                map[A[i].data]=i;
+                i=parent;
+                parent=parent/2;
+            }else break;
+
         }
 
         //cout << "buHeapify complete!....\n";
@@ -360,7 +364,7 @@ class Graph
 	//you must use pointers and dynamic allocation
 
 public:
-	Graph(bool dir = false);
+	Graph(bool dir=false);
 	~Graph();
 	void setnVertices(int n);
 	void addEdge(int u, int v,int w);
@@ -378,22 +382,25 @@ Graph::Graph(bool dir)
 	adjList = 0 ;
 	parent=0;
 	visit=0;
-	directed = dir ; //set direction of the graph
+	directed =dir;
+	distance=0;//set direction of the graph
 	//define other variables to be initialized
 }
 
 void Graph::setnVertices(int n)
 {
 	this->nVertices = n ;
+
 	if(adjList!=0) delete[] adjList ; //delete previous list
 	if(parent!=0) delete[] parent; //delete previous record
 	if(visit!=0) delete[] visit;
-	if(distance!=0) delete[] distance;
+    if(distance!=0) delete[] distance;
+
 
 	adjList = new ArrayList[nVertices+1] ;
 	parent = new int[nVertices+1] ;
-	visit=new bool[nVertices + 1] ;
-	distance=new int[nVertices+ 1];
+	visit=new bool[nVertices+1] ;
+	distance=new int[nVertices+1];
 
 	cout<< "Initializing vertices at 1\n" ;
 }
@@ -434,34 +441,35 @@ void Graph::printGraph()
     }
 }
 
-void Graph::primsAlgo(){
-
-
+void Graph::primsAlgo()
+{
     //setting key to infinite;
-    for(int i=1;i<=nVertices;i++){
+    for(int i=1;i<=nVertices;i++)
+    {
         hp.insertItem(i,MAXREAL);
         parent[i]=-1;
         visit[i]=false;
-        distance[i]=0;
+        distance[i]=MAXREAL;
     }
+
     //hp.printHeap();
     parent[1]=0;
     distance[1]=0;
     hp.updateKey(1,0);
+
     HeapItem x;
     edge e;
 
-    while(!hp.Empty()){
-
+    while(!hp.Empty())
+    {
         x=hp.removeMin();
-
 
         if(visit[x.data]==true) continue;
 
-        for(int i=1;i<= adjList[x.data].getLength();i++ )
+        for(int i=0;i<adjList[x.data].getLength();i++ )
         {
             e=adjList[x.data].getItem(i);
-            if(e.weight < x.key)
+            if(e.weight < distance[e.dest] && !visit[e.dest])
             {
                 parent[e.dest] = x.data;
                 distance[e.dest]=e.weight;
@@ -498,43 +506,6 @@ Graph::~Graph()
 //******main function to test your code*************************
 int main(void)
 {
-    /*int n;
-    Graph g;
-    printf("Enter number of vertices: ");
-    scanf("%d", &n);
-    g.setnVertices(n);
-
-    while(1)
-    {
-        printf("1. Add edge. \n");
-        printf("4. (Add from homework). 5. Print Graph  6. Exit.\n");
-
-        int ch;
-        scanf("%d",&ch);
-        if(ch==1)
-        {
-            int u, v;
-            scanf("%d%d", &u, &v);
-            g.addEdge(u, v);
-        }
-        else if(ch==2)
-        {
-
-        }
-        else if(ch==3)
-        {
-
-        }
-        else if(ch==5)
-        {
-            g.printGraph();
-        }
-        else if(ch==6)
-        {
-            break;
-        }
-    }*/
-
     //freopen("in.txt","r",stdin);
 
     int n,m;
@@ -552,12 +523,7 @@ int main(void)
         g.addEdge(u,v,w);
     }
 
-
-
     g.primsAlgo();
 
-
-
     return 0;
-
 }
