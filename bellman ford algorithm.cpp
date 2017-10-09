@@ -404,14 +404,14 @@ public:
 
 
 
-    bool relaxation(int u,int v){
+    bool relaxation(int u,int v,bool f=true){
         if( u<1 || v<1 || u>nVertices || v>nVertices) return false;
 
         if((distance[u]==INFINITY && distance[v]==INFINITY) || cost[u][v]==INFINITY ) return false;
         else{
             if(distance[u] + cost[u][v] < distance[v] ){
-                parent[v]=u;
-                distance[v]=distance[u] + cost[u][v];
+                if(f)parent[v]=u;
+                if(f)distance[v]=distance[u] + cost[u][v];
                 return true;
             }
         }
@@ -438,7 +438,7 @@ public:
 
         bool flag=true;
         for(int i=0;i<nEdges;i++){
-            if(relaxation( e[i].u, e[i].v )){
+            if(relaxation( e[i].u, e[i].v,false )){
                 pf("Negative cycle exist\n");
                 flag=false;
                 break;
@@ -464,6 +464,7 @@ public:
 
 Graph::Graph(bool dir)
 {
+    cost=0;
     eLength=0;
 	nVertices = 0 ;
 	nEdges = 0 ;
@@ -617,7 +618,11 @@ int main(void)
         g.addEdge(u,v,w);
     }
 
-    g.bell_man_Ford_Algorithm(5);
+    int source;
+    printf("Source?: \n");
+    sf("%d",&source);
+
+    g.bell_man_Ford_Algorithm(source);
 
     return 0;
 }
