@@ -42,17 +42,19 @@ int dp[1000][10000];
 
 int minCoinDP(int coins[],int range[],int len,int value)
 {
+    //debug
 
     int **track;
     track=new int*[len+1];
     for(int i=0;i<=len;i++) track[i]=new int[value +1];
-    
+
     memset(track,0,sizeof(track));
 
     for(int i = 0; i<=value; ++i)
         dp[0][i] = INF;
     for(int i=0; i<=len; i++)
         dp[i][0] = 0;
+
     for(int i=1; i<=len; i++)
     {
         for(int j=0; j<=value; j++)
@@ -66,29 +68,26 @@ int minCoinDP(int coins[],int range[],int len,int value)
             }
         }
     }
+    //debug
 
-    /*for(int i=0;i<=len;i++)
-    {
-        for(int j=0;j<=value;j++)
-            cout<<track[i][j]<<' ';
-        cout<<endl;
-    }*/
     int tvalue=value;
     int tlen=len;
     while(1){
             if(value==0 or len==0) break;
-        if(track[len][value]){
-                cout<<coins[len-1]<< "*" << track[len][value]<<endl;
-                value-=coins[len-1]*track[len][value];
-        }
-        len--;
+            if(track[len][value]){
+                    cout<<coins[len-1]<< "*" << track[len][value]<<endl;
+                    value-=coins[len-1]*track[len][value];
+            }
+            len--;
     }
+    //debug
 
     return dp[tlen][tvalue];
 }
 
 int main()
 {
+    freopen("in.txt","r",stdin);
 
     int len,val;
 
@@ -104,8 +103,9 @@ int main()
         cin>>range[i];
     }
 
-    cout<< minCoinDP(coins,range,len,val)<<endl;
-
+    int res= minCoinDP(coins,range,len,val);
+    if(res!=INF) cout<< "Result: " <<res<<endl;
+    else cout<< "No solution!"<<endl;
 
     return 0;
 }
