@@ -43,7 +43,10 @@ int dp[1000][10000];
 int minCoinDP(int coins[],int range[],int len,int value)
 {
 
-    int track[len +1][value +1];
+    int **track;
+    track=new int*[len+1];
+    for(int i=0;i<=len;i++) track[i]=new int[value +1];
+    
     memset(track,0,sizeof(track));
 
     for(int i = 0; i<=value; ++i)
@@ -64,12 +67,12 @@ int minCoinDP(int coins[],int range[],int len,int value)
         }
     }
 
-    for(int i=0;i<=len;i++)
+    /*for(int i=0;i<=len;i++)
     {
         for(int j=0;j<=value;j++)
             cout<<track[i][j]<<' ';
         cout<<endl;
-    }
+    }*/
     int tvalue=value;
     int tlen=len;
     while(1){
