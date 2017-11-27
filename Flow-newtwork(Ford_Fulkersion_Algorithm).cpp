@@ -1,19 +1,34 @@
 /**
-This algorithm determines maximum flow in a network. Using ford_fulkersion method
+Author @Aitto_sang
+CSE@Buet
 */
 #include<stdio.h>
 #include<iostream>
+//#include<cmath>
+#include<cstdlib>
+//#include<algorithm>
+//#include<stack>
+//#include<cstring>
+//#include<bits/stdc++.h>
 
-#define inf 99999999
-#define NULL_VALUE -999999
-#define debug cout<< "Here I'm!"<<endl;
-#define readFile freopen("in.txt","r",stdin);
-#define sf scanf
+#define lli long long int
 #define pf printf
-
-void bfs(int **graph,int n,int source,int *parent,int *visit);
+#define sf scanf
+#define pi 3.141592653589793116
+#define inf 1e9
+#define linf 1e15
+#define NULL_VALUE -999999
+#define maxNEG -99999999.0
+#define debug cout<<"Hello here!"<<endl;
+#define readFile freopen("in.txt","r",stdin);
+#define syncronize ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
 
 using namespace std;
+
+using namespace std;
+
+void bfs(int **graph,int n,int source,int *parent,int *visit);
+void dfs(int **graph,int *visited,int n,int source);
 
 class Queue
 {
@@ -82,23 +97,21 @@ public:
     } //return true if Queue is empty
 };
 
-//initialize a 1D array
 void initialize(int *p,int n,int val){
     for(int i=0;i<n;i++) p[i]=val;
 }
 
-//Determines if there is a path exist from sink to source, by checking their parents
+//Finds if there exists a path from source to sink
 bool existAPath(int *p,int source,int sink){
-    //cout<<endl<<endl<< "Path: "<<endl;
+    //Finding through parent
     while(1){
         if(source==sink) return true;
         if(sink==-1) return false;
-        //pf("%d %d\n",p[sink],sink);
         sink=p[sink];
     }
 }
 
-//Determines minimum capacity or maximum flow in the path from source, to sink
+//finding minimum in the path
 int minflow(int **graph,int *p,int source,int sink){
     int maxFlow=inf;
 
@@ -109,25 +122,27 @@ int minflow(int **graph,int *p,int source,int sink){
     }
 }
 
-//Finds residual network in the graph
+//Making residual graph
 void makeResidual(int **graph,int **flow,int **residual,int n){
 
     for(int i=1;i<=n;i++)
     for(int j=1;j<=n;j++){
-        /*If there in an edge from i to j, then residual capacity of edge (i,j) would be
-        capacity of the edge (i,j) - flow in the edge (i,j)
-        */
-        if(graph[i][j]!=inf) residual[i][j]=graph[i][j]-flow[i][j];
-        /* If there is a flow from i to j, and there is no edge from j to i, then residual capacity of edge(j,i)
-        would be equal to flow of (i,j)
-        */
-        if(graph[j][i]==inf and flow[i][j]!=0) residual[j][i]=flow[i][j];
-        //We asumed that inf=no edge; Capacity 0 means no flow there, which similar to no edge
+
+        // Residual capacity = graph-flow
+        if(graph[i][j]!=inf) {
+            residual[i][j]=graph[i][j]-flow[i][j];
+            // If there is a reverse path
+            if(graph[j][i]==inf and flow[i][j]!=0) {
+                // two paths between two vertices
+                residual[j][i]=flow[i][j];
+            }else residual[j][i]=graph[j][i] + flow[i][j];
+        }
+        // If residual is zero, means no flow from i to j, which means no path
         if(residual[i][j]==0) residual[i][j]=inf;
     }
 }
 
-//printing a 2D array
+//Prints a 2D array from s to n
 void print(int **arr,int s,int n){
     for(int i=s;i<=n;i++){
         for(int j=s;j<=n;j++){
@@ -138,7 +153,7 @@ void print(int **arr,int s,int n){
     }
 }
 
-//Printing a 1D array
+//Prints a 1D array from s to n
 void print(int *arr,int s,int n){
     for(int i=s;i<=n;i++){
         cout<<i<< " " <<arr[i]<<endl;
@@ -146,16 +161,15 @@ void print(int *arr,int s,int n){
     pf("\n");
 }
 
-//Making flow graph
+// Making flow network
 void makeFlow(int **graph,int **flow,int *parent,int source,int sink,int value){
-    
-    //Adding flow value in the augmentation path. Searching the path by parents from sink to source
+
     while(1){
         if(source==sink) return;
-        if(graph[parent[sink]][sink]!=inf) //IF there is really an edge, then add flow
+        if(graph[parent[sink]][sink]!=inf)
             flow[parent[sink]][sink]+=value;
         else
-            flow[parent[sink]][sink]-=value; //If there is no such edge, means cancellation of the flow
+            flow[parent[sink]][sink]-=value;
         sink=parent[sink];
     }
 
@@ -168,44 +182,52 @@ void fordFulkerson(int **graph,int **flow,int **residual,int n,int source,int si
 
     int maxflow=0;
 
+    //Initially making residual graph and finding augmented path
     makeResidual(graph,flow,residual,n);
-    /*cout<< "Graph: "<<endl;
-    print(graph,1,n);
-    cout<< "Flow: "<<endl;
-    print(flow,1,n);
-    cout<< "Residual: "<<endl;
-    print(residual,1,n);
-    pf("\n\nSink:%d, Source:%d\n\n",sink,source);*/
-
     bfs(residual,n,source,parent,visit);
 
     while(existAPath(parent,source,sink)){
         int tem=minflow(residual,parent,source,sink);
 
         maxflow+=tem;
-        //cout<< "\nmin flow:"<<tem<<endl<<endl;
 
         makeFlow(graph,flow,parent,source,sink,tem);
         makeResidual(graph,flow,residual,n);
-        /*cout<< "Graph: "<<endl;
-        print(graph,1,n);
-        cout<< "Flow: "<<endl;
-        print(flow,1,n);
-        cout<< "Residual: "<<endl;
-        print(residual,1,n);*/
 
         bfs(residual,n,source,parent,visit);
-
-        //tem=minflow(residual,parent,source,sink);
-        //cout<< "min flow:"<<tem<<endl;
-        //print(parent,1,n);
-        //break;
     }
 
     cout<<endl<< "Maxflow: "<<maxflow<<endl;
 }
 
-//Runnign bfs tp find shortest path. Level by level travarsal
+//Finding min cut in the graph
+void minCut(int **graph,int **residual,int source,int sink,int n){
+        int *visited;
+
+        visited=new int[n +1];
+
+        //Finding unreachable nodes from source in residual graph
+        dfs(residual,visited,n,source);
+
+        for(int i=1;i<=n;i++)
+        for(int j=1;j<=n;j++){
+            if(visited[i] and !visited[j] and graph[i][j]!=inf) cout<<i<< " - "<<j<<endl;
+        }
+
+}
+
+//DFS
+void dfs(int **graph,int *visited,int n,int source){
+    if(visited[source]==1) return;
+    visited[source]=1;
+    for(int i=1;i<=n;i++){
+        if(graph[source][i]!=inf) {
+            dfs(graph,visited,n,i);
+        }
+    }
+}
+
+//BFS
 void bfs(int **graph,int n,int source,int *parent,int *visit){
 
     initialize(parent,n +1,-1);
@@ -266,6 +288,11 @@ int main(){
     cin>>source>>sink;
     fordFulkerson(graph,flow,residual,n,source,sink);
 
+    cout<<endl<< "Original Graph: ", print(graph,1,n);
+    cout<<endl<< "Flow Network: ", print(flow,1,n);
+    cout<<endl<< "Residual Graph: ", print(residual,1,n);
+    cout<< "min cut: ";
+    minCut(graph,residual,source,sink,n);
 
     return 0;
 }
