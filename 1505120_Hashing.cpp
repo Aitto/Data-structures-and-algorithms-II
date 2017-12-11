@@ -30,18 +30,21 @@ Segment Tree for finding minimum in a range
 
 using namespace std;
 
-int nextPrime(int i){
+int nextPrime(int i)
+{
     int lim;
     bool track;
-    for(i+=2;1;i+=2){
+    for(i+=2; 1; i+=2)
+    {
         track=true;
         lim=sqrt(i);
 
-        for(int j=2;j<=lim;j++)
-        if(i%j==0){
-            track=false;
-            break;
-        }
+        for(int j=2; j<=lim; j++)
+            if(i%j==0)
+            {
+                track=false;
+                break;
+            }
         if(track) return i;
     }
 }
@@ -115,7 +118,7 @@ int hash3(const string str,int tablesize)
     return abs(hash%tablesize);
 }
 
-int linearProb(elements *element,int tableLength,string s,int startIndex,bool src=true,bool del=false)
+int linearProb(elements *element,int tableLength,string s,int startIndex,bool src=true,bool del=false,int data=-1,int hashing=0)
 {
     if(src)
     {
@@ -137,15 +140,31 @@ int linearProb(elements *element,int tableLength,string s,int startIndex,bool sr
         if(del)
         {
             //For deleting For searching returning index
-            int i=startIndex;
-
-            while(1)
+            if(!hashing)
             {
-                i++;
-                i=i%tableLength;
-                if(element[i].str.length()==0) return -1; // Empty or deleted slot found
-                if(i==startIndex) return inf; //Table is full. Not found
-                if(element[i].str==s) return i; //Duplicate data
+                int i=startIndex;
+
+                while(1)
+                {
+                    i++;
+                    i=i%tableLength;
+                    if(element[i].str.length()==0) return -1; // Empty or deleted slot found
+                    if(i==startIndex) return inf; //Table is full. Not found
+                    if(element[i].str==s) return i; //Duplicate data
+                }
+            }
+            else
+            {
+                int i=startIndex;
+
+                while(1)
+                {
+                    i++;
+                    i=i%tableLength;
+                    if(element[i].str.length()==0) return -1; // Empty or deleted slot found
+                    if(i==startIndex) return inf; //Table is full. Not found
+                    if(element[i].data==data) return i; //Duplicate data
+                }
             }
 
         }
@@ -221,23 +240,26 @@ public:
         return 1;
     }
 
-    int searchData(const string key,int hashing)
+    int searchData(const string key,int hashing,int data=0)
     {
 
         int index;
         if(hashing==1) index=hash1(key,hashLength);
-        else if(hashing==2) index;
+        else if(hashing==2) index=hash2(data,hashLength);
         else index=hash3(key,hashLength);
 
         int track=index;
-        if(element[track].str!=key) track=linearProb(element,hashLength,key,index,false); //false for ignoring deleted key
+        if(hashing!=2 and element[track].str!=key) track=linearProb(element,hashLength,key,index,false); //false for ignoring deleted key
+        else track=linearProb(element,hashLength,key,index,false,data, hashing);
 
         if(track==-1)
         {
             //cout<< "found key"<<endl;
             return -1;
-        }else {
-           // cout<< "key not found"<<endl;
+        }
+        else
+        {
+            // cout<< "key not found"<<endl;
         }
 
         return 0;
@@ -265,7 +287,7 @@ public:
     void printHashTable()
     {
         //for(int i=0; i<hashLength; i++) cout<< element[i].str<< " "<<element[i].data<<endl;
-        cout<<endl<< "total number of clash: "<<clash<<"about "<< (double)(clash/(double)hashLength)*100<<"\%"<<endl;
+        cout<<endl<< "total clash about "<< (double)(clash/(double)hashLength)*100<<"\%"<<endl;
     }
 
 };
@@ -294,7 +316,6 @@ public:
 
     HashSC(int len=10000)
     {
-        debug
         tableSize=len;
         element=new elementSC*[tableSize +1];
         for(int i=0; i<len; i++) element[i]=0;
@@ -317,7 +338,7 @@ public:
             {
                 if(temp->str==str)
                 {
-                    cout<< "duplicate data..."<<endl;
+                    //cout<< "duplicate data..."<<endl;
                     clash--;
                     return true;
                 }
@@ -337,23 +358,48 @@ public:
         return false;
     }
 
-    void Search(string key,int hashing,int data=0){
+    void searchData(string key,int hashing,int data=0)
+    {
         int index;
         if(hashing==1) index=hash1(key,tableSize);
         else if(hashing==2) index=hash2(data,tableSize);
         else index=hash3(key,tableSize);
 
-        if(element[index]==0){
-            //cout<< " No data found "<<endl;
-            return;
-        }
-        elementSC *temp=element[index];
-        while(temp!=0){
-            if(temp->str==key){
-                //cout<<"Data found"<<endl;
+        if(hashing!=2)
+        {
+            if(element[index]==0)
+            {
+                //cout<< " No data found "<<endl;
                 return;
             }
-            temp=temp->next;
+            elementSC *temp=element[index];
+            while(temp!=0)
+            {
+                if(temp->str==key)
+                {
+                    //cout<<"Data found"<<endl;
+                    return;
+                }
+                temp=temp->next;
+            }
+        }
+        else
+        {
+            if(element[index]==0)
+            {
+                //cout<< " No data found "<<endl;
+                return;
+            }
+            elementSC *temp=element[index];
+            while(temp!=0)
+            {
+                if(temp->data==data)
+                {
+                    //cout<<"Data found"<<endl;
+                    return;
+                }
+                temp=temp->next;
+            }
         }
 
     }
@@ -407,23 +453,102 @@ int main()
     readFile
     srand(time(NULL));
 
-    int tableSize,wordLength=0,words=1,track;
-    char *ch;
+    int tableSize,wordLength=0,track;
+    char *ch,**words;
 
     cin>>tableSize>>wordLength;
     ch=new char[wordLength +1];
+    words=new char*[tableSize +1];
+    for(int i=0; i<tableSize; i++) words[i]=new char[wordLength +1];
+
+    for(int i=0; i<tableSize; i++)
+    {
+        for(int j=0; j<wordLength; j++)
+        {
+            words[i][j]= (rand()%26) + 97;
+        }
+        words[i][wordLength]='\0';
+    }
+    /*for(int i=0;i<tableSize;i++){
+        cout<< words[i]<<endl;
+    }*/
 
     HashOpen *h;
     HashSC *hsc;
 
+    cout<< "Testing Search time for testing values for all hash functions...."<<endl;
     for(int i=1; i<=2; i++)
     {
         // Linear Probing Method
         if(i==1)
         {
             //Controlling hash functions
+            cout<<endl<< ".....linear Probing methods...."<<endl;
             for(int hashing=1; hashing<=3; hashing++)
             {
+                cout<<endl<<"Hash"<<hashing<<": "<<endl;
+                h=new HashOpen(tableSize);
+
+                for(int k=0; k<tableSize; k++)
+                {
+
+                    track=h->insertData(words[k], k +1,hashing);
+                }
+
+                h->printHashTable();
+
+
+                const clock_t timet=clock();
+                for(int i=0; i<tableSize; i++)
+                {
+                    if(hashing==2) h->searchData(words[i],hashing,i);
+                    else h->searchData(words[i],hashing);
+                }
+
+                cout<< "SearchTime: "<<(clock()-timet)<<" ms"<<endl;
+                free(h);
+            }
+        }
+        else
+        {
+            cout<<endl<<".......Separate Chaining methods......."<<endl;
+            for(int hashing=1; hashing<=3; hashing++)
+            {
+                cout<<endl<<"Hash"<<hashing<<": "<<endl;
+                hsc=new HashSC(tableSize);
+
+                for(int k=0; k<tableSize; k++)
+                {
+                    bool track=hsc->insertData(words[k],k +1,hashing);
+
+                }
+
+                hsc->printHashTable();
+
+                const clock_t timet=clock();
+                for(int i=0; i<tableSize; i++)
+                {
+                    if(hashing==2) hsc->searchData(words[i],hashing,i);
+                    else hsc->searchData(words[i],hashing);
+                }
+
+                cout<< "SearchTime: "<<(clock()-timet)<<"ms"<<endl;
+                free(hsc);
+            }
+        }
+    }
+
+    cout<< "\nTesting search time and clash for worst case unique values....\n";
+    for(int i=1; i<=2; i++)
+    {
+        // Linear Probing Method
+        if(i==1)
+        {
+            cout<<endl<< ".....linear Probing methods...."<<endl;
+            //Controlling hash functions
+            for(int hashing=1; hashing<=3; hashing++)
+            {
+                cout<<endl<<"Hash"<<hashing<<": "<<endl;
                 h=new HashOpen(tableSize);
 
                 for(int k=0; k<tableSize; k++)
@@ -454,16 +579,28 @@ int main()
                     if(track==inf) break;
                 }
 
-               // cout<< endl<<"Printing hash..."<<endl;
-                //h.print();
+
                 h->printHashTable();
+
+
+                const clock_t timet=clock();
+                for(int i=0; i<tableSize; i++)
+                {
+                    if(hashing==2) h->searchData(words[i],hashing,i);
+                    else h->searchData(words[i],hashing);
+                }
+
+                cout<< "SearchTime: "<<(clock()-timet)<<" ms"<<endl;
                 free(h);
             }
-        }else{
+        }
+        else
+        {
+            cout<<endl<<".......Separate Chaining methods......."<<endl;
             for(int hashing=1; hashing<=3; hashing++)
             {
                 hsc=new HashSC(tableSize);
-
+                cout<<endl<<"Hash"<<hashing<<": "<<endl;
                 for(int k=0; k<tableSize; k++)
                 {
                     for(int j=0; j<wordLength; j++)
@@ -487,14 +624,23 @@ int main()
 
                 }
 
-                cout<< endl<<"Printing hash..."<<endl;
                 //h.print();
                 hsc->printHashTable();
+
+                const clock_t timet=clock();
+                for(int i=0; i<tableSize; i++)
+                {
+                    if(hashing==2) hsc->searchData(words[i],hashing,i);
+                    else hsc->searchData(words[i],hashing);
+                }
+
+                cout<< "SearchTime: "<<(clock()-timet)<<"ms"<<endl;
                 free(hsc);
+            }
         }
-    }
     }
 
     return 0;
 
 }
+
